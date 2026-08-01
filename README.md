@@ -1,4 +1,4 @@
-# ☁️ Cloud Architecture Designer & Estimator
+# ☁️ MultiCloud Canvas Studio
 
 Uma plataforma web interativa para modelagem, documentação, estimativa de custos e geração de código de infraestrutura para arquiteturas de nuvem multicloud (**AWS, GCP, Azure, Kubernetes, On-Premises**).
 
