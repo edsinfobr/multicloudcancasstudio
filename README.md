@@ -152,8 +152,8 @@ A aplicação utiliza uma estrutura full-stack moderna com React no frontend e E
 
 1. **Clonar o repositório:**
    ```bash
-   git clone https://github.com/edsinfobr/cloudcraft.git
-   cd cloudcraft
+   git clone https://github.com/edsinfobr/multicloudcancasstudio.git
+   cd multicloudcanvasstudio
    ```
 
 2. **Instalar as dependências:**
