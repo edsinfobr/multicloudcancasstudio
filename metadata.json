@@ -1,0 +1,8 @@
+{
+  "name": "Multi-Cloud Canvas Studio",
+  "description": "Design cloud architectures across AWS, Azure, GCP, and OCI with official icons, export Terraform IaC, calculate estimated monthly costs, and export to PDF, PNG, SVG, or JSON.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
