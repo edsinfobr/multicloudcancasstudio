@@ -13,6 +13,7 @@ import { SavedArchitecturesModal } from './components/SavedArchitecturesModal';
 import { GoogleDriveModal } from './components/GoogleDriveModal';
 import { MetadataModal } from './components/MetadataModal';
 import { FeedbackModal } from './components/FeedbackModal';
+import { VersionTabsBar } from './components/VersionTabsBar';
 import { GoogleUser } from './services/googleDrive';
 import { saveArchitectureToStorage, saveAutosaveDraft, getAutosaveDraft } from './utils/storageUtils';
 import { exportArchitecturePdf } from './utils/exportUtils';
@@ -26,18 +27,144 @@ const getSystemTheme = (): 'dark' | 'light' => {
   return 'light';
 };
 
+// Helper to calculate next version tag (e.g., v1.0 -> v1.1, v1.1 -> v1.2)
+const calculateNextVersionTag = (versionsList: DiagramState[], currentVer: string): string => {
+  const match = (currentVer || 'v1.0').match(/v?(\d+)\.(\d+)/i);
+  if (match) {
+    const major = parseInt(match[1], 10);
+    let minor = parseInt(match[2], 10) + 1;
+    let candidate = `v${major}.${minor}`;
+    while (versionsList.some((v) => v.version === candidate)) {
+      minor++;
+      candidate = `v${major}.${minor}`;
+    }
+    return candidate;
+  }
+  return `${currentVer || 'v1.0'}-v2`;
+};
+
 export default function App() {
-  // Initial state: load auto-saved draft if available, or fall back to default AWS template
-  const [diagram, setDiagram] = useState<DiagramState>(() => {
+  // Versions list state: maintains all version tabs for the current project
+  const [versions, setVersions] = useState<DiagramState[]>(() => {
+    try {
+      const cached = localStorage.getItem('multicloud_studio_versions_v1');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return parsed.map((item: DiagramState, idx: number) => ({
+            ...item,
+            version: item.version || `v1.${idx}`
+          }));
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to load version tabs list from storage', err);
+    }
+
     const draft = getAutosaveDraft();
-    return draft || STARTER_TEMPLATES[0];
+    if (draft) {
+      return [{ ...draft, version: draft.version || 'v1.0' }];
+    }
+    return [{ ...STARTER_TEMPLATES[0], version: 'v1.0' }];
   });
+
+  const [activeVersionId, setActiveVersionId] = useState<string>(() => versions[0]?.id || `diag_${Date.now()}`);
+
+  // Derived current active diagram
+  const diagram = versions.find((v) => v.id === activeVersionId) || versions[0] || STARTER_TEMPLATES[0];
+
+  // Custom setDiagram proxy to update the active version inside versions array
+  const setDiagram: React.Dispatch<React.SetStateAction<DiagramState>> = (action) => {
+    setVersions((prevVersions) => {
+      return prevVersions.map((v) => {
+        if (v.id === activeVersionId) {
+          return typeof action === 'function' ? action(v) : action;
+        }
+        return v;
+      });
+    });
+  };
+
+  // Sync versions list to local storage
+  useEffect(() => {
+    try {
+      localStorage.setItem('multicloud_studio_versions_v1', JSON.stringify(versions));
+    } catch (err) {
+      console.error('Failed to save versions list:', err);
+    }
+  }, [versions]);
 
   const [lastAutoSavedAt, setLastAutoSavedAt] = useState<Date | null>(null);
 
   // Theme state: automatically detects OS system theme preference
   const [theme, setTheme] = useState<'dark' | 'light'>(getSystemTheme);
   const [isManualThemeOverride, setIsManualThemeOverride] = useState(false);
+
+  // Version management handlers
+  const handleSelectVersion = (id: string) => {
+    setActiveVersionId(id);
+    setSelectedNodeId(null);
+    setSelectedContainerId(null);
+    setSelectedLinkId(null);
+  };
+
+  const handleAddVersion = () => {
+    recordHistory();
+    const nextVerTag = calculateNextVersionTag(versions, diagram.version || 'v1.0');
+    const newVersion: DiagramState = {
+      id: `diag_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      title: diagram.title || 'Nova Arquitetura',
+      description: diagram.description || '',
+      primaryProvider: diagram.primaryProvider || 'aws',
+      nodes: [],
+      containers: [],
+      links: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      version: nextVerTag,
+      metadata: diagram.metadata ? { ...diagram.metadata } : undefined
+    };
+
+    setVersions((prev) => [...prev, newVersion]);
+    setActiveVersionId(newVersion.id);
+    setSelectedNodeId(null);
+    setSelectedContainerId(null);
+    setSelectedLinkId(null);
+    showToast(`Nova versão ${nextVerTag} criada com sucesso!`);
+  };
+
+  const handleDuplicateVersion = (targetId?: string) => {
+    recordHistory();
+    const source = versions.find((v) => v.id === (targetId || activeVersionId)) || diagram;
+    const nextVerTag = calculateNextVersionTag(versions, source.version || 'v1.0');
+
+    const duplicated: DiagramState = JSON.parse(JSON.stringify(source));
+    duplicated.id = `diag_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    duplicated.version = nextVerTag;
+    duplicated.updatedAt = new Date().toISOString();
+
+    setVersions((prev) => [...prev, duplicated]);
+    setActiveVersionId(duplicated.id);
+    setSelectedNodeId(null);
+    setSelectedContainerId(null);
+    setSelectedLinkId(null);
+    showToast(`Versão ${source.version || 'v1.0'} duplicada como ${nextVerTag}!`);
+  };
+
+  const handleDeleteVersion = (targetId: string) => {
+    if (versions.length <= 1) {
+      showToast('O projeto deve ter pelo menos uma versão.');
+      return;
+    }
+    recordHistory();
+    const targetVer = versions.find((v) => v.id === targetId);
+    const remaining = versions.filter((v) => v.id !== targetId);
+    setVersions(remaining);
+    if (activeVersionId === targetId) {
+      setActiveVersionId(remaining[0].id);
+    }
+    showToast(`Versão ${targetVer?.version || ''} excluída com sucesso.`);
+  };
 
   // Automatically follow OS color scheme (prefers-color-scheme)
   useEffect(() => {
@@ -378,6 +505,17 @@ export default function App() {
           theme={theme}
         />
       </div>
+
+      {/* Version Tabs Bar (Bottom of screen above footer) */}
+      <VersionTabsBar
+        versions={versions}
+        activeVersionId={activeVersionId}
+        onSelectVersion={handleSelectVersion}
+        onAddVersion={handleAddVersion}
+        onDuplicateVersion={handleDuplicateVersion}
+        onDeleteVersion={handleDeleteVersion}
+        theme={theme}
+      />
 
       {/* Application Footer */}
       <footer className={`h-7 border-t px-4 flex items-center justify-between text-[11px] select-none z-10 shrink-0 ${

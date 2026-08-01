@@ -28,7 +28,9 @@ import {
   FileSignature,
   Sun,
   Moon,
-  MessageSquarePlus
+  MessageSquarePlus,
+  GitBranch,
+  Tag
 } from 'lucide-react';
 import { DiagramState, CloudProvider } from '../types';
 import { exportCanvasToPng, exportCanvasToJpg, exportCanvasToSvg, exportArchitecturePdf, exportProjectToJson } from '../utils/exportUtils';
@@ -99,6 +101,10 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setDiagram((prev) => ({ ...prev, title: e.target.value }));
+  };
+
+  const handleVersionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDiagram((prev) => ({ ...prev, version: e.target.value }));
   };
 
   const handleExportPng = async () => {
@@ -208,9 +214,55 @@ export const Navbar: React.FC<NavbarProps> = ({
                 STUDIO
               </span>
             </div>
-            <span className={`text-[10px] font-medium hidden sm:inline ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
+            <span className={`text-[10px] font-medium hidden lg:inline ${theme === 'light' ? 'text-slate-500' : 'text-slate-400'}`}>
               Modelador de Arquitetura Multi-Nuvem, Estimativas de Custos e IaC Terraform
             </span>
+          </div>
+        </div>
+
+        {/* Center: Architecture Title & Version Badge (Centered on top row with App Name) */}
+        <div className="flex-1 flex items-center justify-center max-w-xs sm:max-w-md md:max-w-lg lg:max-w-xl mx-2">
+          <div className={`flex items-center space-x-2 px-3 py-1 rounded-xl border transition-all ${
+            theme === 'light'
+              ? 'bg-white/90 border-slate-300 shadow-sm hover:border-blue-400 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-400/20'
+              : 'bg-[#181c28] border-white/15 shadow-inner hover:border-blue-500/50 focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/20'
+          }`}>
+            <Tag className={`w-3.5 h-3.5 shrink-0 ${theme === 'light' ? 'text-blue-600' : 'text-blue-400'}`} />
+
+            {/* Architecture Title Input */}
+            <input
+              id="top-center-architecture-title"
+              type="text"
+              value={diagram.title || ''}
+              onChange={handleTitleChange}
+              className={`text-xs sm:text-sm font-bold bg-transparent border-none outline-none text-center w-28 sm:w-48 md:w-60 lg:w-72 truncate ${
+                theme === 'light'
+                  ? 'text-slate-900 placeholder-slate-400'
+                  : 'text-white placeholder-slate-500'
+              }`}
+              placeholder="Nome da Arquitetura"
+              title="Clique para editar o nome da arquitetura"
+            />
+
+            <span className={`text-xs ${theme === 'light' ? 'text-slate-300' : 'text-white/20'}`}>|</span>
+
+            {/* Version Badge & Input */}
+            <div className="flex items-center space-x-1 shrink-0" title="Versão atual da arquitetura">
+              <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
+              <input
+                id="top-center-architecture-version"
+                type="text"
+                value={diagram.version || 'v1.0'}
+                onChange={handleVersionChange}
+                className={`text-xs font-mono font-black px-2 py-0.5 rounded-md outline-none border transition-colors w-16 text-center ${
+                  theme === 'light'
+                    ? 'bg-indigo-50 border-indigo-200 text-indigo-900 focus:border-indigo-500'
+                    : 'bg-indigo-950/60 border-indigo-500/40 text-indigo-300 focus:border-indigo-400'
+                }`}
+                placeholder="v1.0"
+                title="Clique para alterar a versão (ex: v1.0, v2.0)"
+              />
+            </div>
           </div>
         </div>
 
@@ -464,20 +516,6 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           <div className={`h-5 w-[1px] ${theme === 'light' ? 'bg-slate-300' : 'bg-white/10'}`} />
-
-          {/* Diagram Title Input */}
-          <input
-            id="diagram-title-input"
-            type="text"
-            value={diagram.title}
-            onChange={handleTitleChange}
-            className={`border rounded-md px-2.5 py-1 text-xs font-semibold transition-colors outline-none w-44 ${
-              theme === 'light'
-                ? 'bg-slate-100 hover:bg-slate-200 focus:bg-white border-slate-300 text-slate-950 placeholder-slate-500 focus:border-blue-600'
-                : 'bg-white/5 hover:bg-white/10 focus:bg-black/60 border-white/10 text-white focus:border-blue-500'
-            }`}
-            placeholder="Untitled Architecture"
-          />
 
           <button
             id="btn-open-carimbo"

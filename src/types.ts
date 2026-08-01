@@ -96,6 +96,7 @@ export interface DiagramState {
   createdAt: string;
   updatedAt: string;
   metadata?: DiagramMetadata;
+  version?: string;
 }
 
 export interface CloudIconDefinition {
