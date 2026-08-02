@@ -353,7 +353,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* ROW 2: CONTROLS & ACTION BUTTONS TOOLBAR */}
-      <div className="px-4 py-1.5 flex items-center justify-between gap-3 overflow-x-auto min-h-[42px]">
+      <div className="px-4 py-1.5 flex items-center justify-between gap-3 min-h-[42px] relative z-30">
         {/* Left Controls: Architecture Dropdown, Title Input & Stamps */}
         <div className="flex items-center space-x-2.5 shrink-0">
           {/* Main Architecture Dropdown Menu */}
@@ -373,9 +373,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {isMenuOpen && (
-              <div className={`absolute left-0 mt-2 w-56 border rounded-xl shadow-2xl z-50 overflow-hidden py-1 ${
-                theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#12141A] border-white/10'
-              }`}>
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-black/0 cursor-default"
+                  onClick={() => setIsMenuOpen(false)}
+                />
+                <div className={`absolute left-0 mt-2 w-56 border rounded-xl shadow-2xl z-50 overflow-hidden py-1 ${
+                  theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#12141A] border-white/10'
+                }`}>
                 <button
                   id="menu-btn-new-arch"
                   onClick={() => {
@@ -512,6 +517,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Importar Projeto JSON</span>
                 </button>
               </div>
+            </>
             )}
           </div>
 
@@ -726,9 +732,14 @@ export const Navbar: React.FC<NavbarProps> = ({
             </button>
 
             {isExportOpen && (
-              <div className={`absolute right-0 mt-2 w-52 border rounded-lg shadow-2xl z-50 overflow-hidden py-1 ${
-                theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#12141A] border-white/10'
-              }`}>
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-black/0 cursor-default"
+                  onClick={() => setIsExportOpen(false)}
+                />
+                <div className={`absolute right-0 mt-2 w-52 border rounded-lg shadow-2xl z-50 overflow-hidden py-1 ${
+                  theme === 'light' ? 'bg-white border-slate-200' : 'bg-[#12141A] border-white/10'
+                }`}>
                 <button
                   id="btn-export-google-drive"
                   onClick={() => {
@@ -795,6 +806,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <span>Salvar JSON Local</span>
                 </button>
               </div>
+            </>
             )}
           </div>
 
