@@ -69,7 +69,7 @@ export async function authenticateWithGoogle(customClientId?: string): Promise<G
       const google = (window as any).google;
       const tokenClient = google.accounts.oauth2.initTokenClient({
         client_id: clientId,
-        scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+        scope: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/gmail.send https://www.googleapis.com/auth/gmail.compose https://www.googleapis.com/auth/gmail.readonly',
         callback: async (response: any) => {
           if (response.error) {
             reject(new Error(response.error_description || response.error));

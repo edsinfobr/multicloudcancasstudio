@@ -1,5 +1,6 @@
 import express from "express";
 import path from "path";
+import fs from "fs";
 import { GoogleGenAI, Type } from "@google/genai";
 import dotenv from "dotenv";
 
@@ -34,12 +35,27 @@ async function startServer() {
 
   // Google OAuth Client Config endpoint
   app.get("/api/auth/google/config", (req, res) => {
-    const clientId =
+    let clientId =
       process.env.GOOGLE_CLIENT_ID ||
       process.env.VITE_GOOGLE_CLIENT_ID ||
       process.env.OAUTH_CLIENT_ID ||
       process.env.CLIENT_ID ||
       "";
+
+    if (!clientId) {
+      try {
+        const configPath = path.join(process.cwd(), "firebase-applet-config.json");
+        if (fs.existsSync(configPath)) {
+          const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
+          if (config.oAuthClientId) {
+            clientId = config.oAuthClientId;
+          }
+        }
+      } catch (e) {
+        console.warn("Could not read oAuthClientId from firebase-applet-config.json", e);
+      }
+    }
+
     res.json({ clientId });
   });
 

@@ -20,11 +20,12 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
 
   const handleSelectTemplate = (template: DiagramState) => {
     onRecordHistory();
-    setDiagram({
+    setDiagram((prev) => ({
       ...template,
-      id: `diag_${Date.now()}`,
+      id: prev?.id || `diag_${Date.now()}`,
+      version: prev?.version || 'v1.0',
       updatedAt: new Date().toISOString()
-    });
+    }));
     onClose();
   };
 

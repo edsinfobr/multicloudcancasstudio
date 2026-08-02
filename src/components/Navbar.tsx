@@ -30,7 +30,8 @@ import {
   Moon,
   MessageSquarePlus,
   GitBranch,
-  Tag
+  Tag,
+  Mail
 } from 'lucide-react';
 import { DiagramState, CloudProvider } from '../types';
 import { exportCanvasToPng, exportCanvasToJpg, exportCanvasToSvg, exportArchitecturePdf, exportProjectToJson } from '../utils/exportUtils';
@@ -60,6 +61,7 @@ interface NavbarProps {
   onImportJson: (e: React.ChangeEvent<HTMLInputElement>) => void;
   googleUser: GoogleUser | null;
   onOpenGoogleDriveModal: () => void;
+  onOpenGmailModal?: () => void;
   onOpenFeedbackModal?: () => void;
   lastAutoSavedAt?: Date | null;
   theme?: 'dark' | 'light';
@@ -90,6 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onImportJson,
   googleUser,
   onOpenGoogleDriveModal,
+  onOpenGmailModal,
   onOpenFeedbackModal,
   lastAutoSavedAt,
   theme = 'dark',
@@ -753,6 +756,21 @@ export const Navbar: React.FC<NavbarProps> = ({
                   <HardDrive className="w-3.5 h-3.5 text-blue-500" />
                   <span>Salvar no Google Drive</span>
                 </button>
+                {onOpenGmailModal && (
+                  <button
+                    id="btn-export-gmail"
+                    onClick={() => {
+                      setIsExportOpen(false);
+                      onOpenGmailModal();
+                    }}
+                    className={`w-full text-left px-4 py-2 text-xs flex items-center space-x-2 font-bold ${
+                      theme === 'light' ? 'text-red-900 hover:bg-red-50' : 'text-red-400 hover:bg-red-600/20'
+                    }`}
+                  >
+                    <Mail className="w-3.5 h-3.5 text-red-500" />
+                    <span>Enviar via Gmail</span>
+                  </button>
+                )}
                 <div className={`h-px my-1 ${theme === 'light' ? 'bg-slate-200' : 'bg-white/10'}`} />
                 <button
                   id="btn-export-png"

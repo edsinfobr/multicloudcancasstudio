@@ -11,6 +11,7 @@ import { AiPromptModal } from './components/AiPromptModal';
 import { TemplateModal } from './components/TemplateModal';
 import { SavedArchitecturesModal } from './components/SavedArchitecturesModal';
 import { GoogleDriveModal } from './components/GoogleDriveModal';
+import { GmailModal } from './components/GmailModal';
 import { MetadataModal } from './components/MetadataModal';
 import { FeedbackModal } from './components/FeedbackModal';
 import { VersionTabsBar } from './components/VersionTabsBar';
@@ -76,12 +77,20 @@ export default function App() {
   // Custom setDiagram proxy to update the active version inside versions array
   const setDiagram: React.Dispatch<React.SetStateAction<DiagramState>> = (action) => {
     setVersions((prevVersions) => {
-      return prevVersions.map((v) => {
-        if (v.id === activeVersionId) {
-          return typeof action === 'function' ? action(v) : action;
-        }
-        return v;
-      });
+      let targetIndex = prevVersions.findIndex((v) => v.id === activeVersionId);
+      if (targetIndex === -1 && prevVersions.length > 0) {
+        targetIndex = 0;
+      }
+      if (targetIndex === -1) return prevVersions;
+
+      const targetVersion = prevVersions[targetIndex];
+      const nextDiagram = typeof action === 'function' ? action(targetVersion) : action;
+
+      if (nextDiagram.id && nextDiagram.id !== activeVersionId) {
+        setActiveVersionId(nextDiagram.id);
+      }
+
+      return prevVersions.map((v, idx) => (idx === targetIndex ? nextDiagram : v));
     });
   };
 
@@ -259,6 +268,7 @@ export default function App() {
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const [isSavedModalOpen, setIsSavedModalOpen] = useState(false);
   const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState(false);
+  const [isGmailModalOpen, setIsGmailModalOpen] = useState(false);
   const [isMetadataModalOpen, setIsMetadataModalOpen] = useState(false);
   const [isFeedbackModalOpen, setIsFeedbackModalOpen] = useState(false);
 
@@ -366,20 +376,20 @@ export default function App() {
   const handleAddNode = (icon: CloudIconDefinition) => {
     recordHistory();
     const newNode: DiagramNode = {
-      id: `node_${Date.now()}`,
+      id: `node_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: icon.name,
       provider: icon.provider,
       category: icon.category,
       iconKey: icon.key,
       resourceType: icon.defaultResourceType,
-      x: 300 + Math.random() * 100,
-      y: 200 + Math.random() * 100,
+      x: 300 + Math.random() * 80,
+      y: 200 + Math.random() * 80,
       specs: { ...icon.defaultSpecs }
     };
 
     setDiagram((prev) => ({
       ...prev,
-      nodes: [...prev.nodes, newNode]
+      nodes: [...(prev?.nodes || []), newNode]
     }));
     setSelectedNodeId(newNode.id);
   };
@@ -407,7 +417,7 @@ export default function App() {
     }
 
     const newContainer: DiagramContainer = {
-      id: `c_${Date.now()}`,
+      id: `c_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       name: containerName,
       provider,
       type,
@@ -420,7 +430,7 @@ export default function App() {
 
     setDiagram((prev) => ({
       ...prev,
-      containers: [...prev.containers, newContainer]
+      containers: [...(prev?.containers || []), newContainer]
     }));
     setSelectedContainerId(newContainer.id);
   };
@@ -454,6 +464,7 @@ export default function App() {
         onImportJson={handleImportJson}
         googleUser={googleUser}
         onOpenGoogleDriveModal={() => setIsGoogleDriveModalOpen(true)}
+        onOpenGmailModal={() => setIsGmailModalOpen(true)}
         onOpenFeedbackModal={() => setIsFeedbackModalOpen(true)}
         lastAutoSavedAt={lastAutoSavedAt}
         theme={theme}
@@ -615,6 +626,15 @@ export default function App() {
         canvasRef={canvasRef}
         googleUser={googleUser}
         setGoogleUser={setGoogleUser}
+      />
+
+      <GmailModal
+        isOpen={isGmailModalOpen}
+        onClose={() => setIsGmailModalOpen(false)}
+        diagram={diagram}
+        googleUser={googleUser}
+        onGoogleUserChange={setGoogleUser}
+        theme={theme}
       />
 
       <MetadataModal
